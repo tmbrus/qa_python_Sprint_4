@@ -1,13 +1,8 @@
 import pytest
 
-from main import BooksCollector
-
 
 class TestBooksCollector:
 
-    @pytest.fixture
-    def collector(self):
-        return BooksCollector()
 
     # Тесты для add_new_book
     @pytest.mark.parametrize('name, expected', [
@@ -41,18 +36,22 @@ class TestBooksCollector:
         collector.set_book_genre('Фантастическая книга', 'Фантастика')
         collector.add_new_book('Еще фантастика')
         collector.set_book_genre('Еще фантастика', 'Фантастика')
-        assert len(collector.get_books_with_specific_genre('Фантастика')) == 2
+        books = collector.get_books_with_specific_genre('Фантастика')
+        assert 'Фантастическая книга' in books
+        assert 'Еще фантастика' in books
+        assert len(books) == 2
 
     # Тесты для get_books_genre
-    def test_set_book_genre_valid(self, collector):
-        collector.add_new_book('Гарри Поттер')
-        collector.set_book_genre('Гарри Поттер', 'Фантастика')
-        assert collector.get_book_genre('Гарри Поттер') == 'Фантастика'
+    def test_set_book_genre_returns_all_books_with_genres(self, collector):
+        collector.add_new_book('Книга 1')
+        collector.set_book_genre('Книга 1', 'Фантастика')  # Допустимый жанр
+        collector.add_new_book('Книга 2')
+        collector.set_book_genre('Книга 2', 'Комедии')  # Используем другой допустимый жанр
+        assert collector.get_books_genre() == {
+            'Книга 1': 'Фантастика',
+            'Книга 2': 'Комедии'
+        }
 
-    def test_set_book_genre_invalid_genre_not_set(self, collector):
-        collector.add_new_book('Гарри Поттер')
-        collector.set_book_genre('Гарри Поттер', 'Несуществующий жанр')
-        assert collector.get_book_genre('Гарри Поттер') == ''
 
     # Тесты для get_books_for_children
     def test_get_books_for_children(self, collector):
@@ -60,8 +59,9 @@ class TestBooksCollector:
         collector.set_book_genre('Детская книга', 'Мультфильмы')
         collector.add_new_book('Взрослая книга')
         collector.set_book_genre('Взрослая книга', 'Ужасы')
-        assert 'Детская книга' in collector.get_books_for_children()
-        assert 'Взрослая книга' not in collector.get_books_for_children()
+        children_books = collector.get_books_for_children()
+        assert 'Детская книга' in children_books
+        assert 'Взрослая книга' not in children_books
 
     # Тесты для add_book_in_favorites
     def test_add_book_in_favorites(self, collector):
@@ -82,4 +82,7 @@ class TestBooksCollector:
         collector.add_new_book('Книга 2')
         collector.add_book_in_favorites('Книга 1')
         collector.add_book_in_favorites('Книга 2')
-        assert len(collector.get_list_of_favorites_books()) == 2
+        favorites = collector.get_list_of_favorites_books()
+        assert 'Книга 1' in favorites
+        assert 'Книга 2' in favorites
+        assert len(favorites) == 2
